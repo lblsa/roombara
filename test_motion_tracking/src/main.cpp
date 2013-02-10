@@ -5,62 +5,113 @@
  *      Author: Tatyana
  */
 
-/*
- * main.cpp
- *
- *  Created on: 29.01.2013
- *      Author: Tatyana
- */
+#include <opencv2/opencv.hpp>
+#include <string>
+#include <iostream>
+#include <sstream>
 
-#include <cv.h>
-#include <highgui.h>
-#include <stdlib.h>
-#include <stdio.h>
+const std::string winCaption = "Camera input:";
+
+static bool everPressed = false;
+static bool wasPressed  = false;
+
+static cv::Rect  lastRect;
+static cv::Point firstClickPoint;
+static cv::Point secondClickPoint;
+
+class MouseHandler
+{
+public:
+	static void MouseWinCallback(int event, int x, int y, int flags, void* userdata)
+	{
+		switch(event)
+		{
+		case CV_EVENT_LBUTTONDOWN:
+			firstClickPoint.x = x;
+			firstClickPoint.y = y;
+			break;
+			
+		case CV_EVENT_LBUTTONUP:
+         everPressed = true;
+		   wasPressed = true;
+		   secondClickPoint.x = x;
+		   secondClickPoint.y = y;
+		   lastRect = cv::Rect( firstClickPoint, secondClickPoint );
+		   break;
+		   
+		case CV_EVENT_RBUTTONDOWN:
+			break;
+		}
+	}
+
+	static bool EverPressed() {return everPressed;}
+   static bool WasPressed() {return wasPressed;}
+   
+	static const cv::Rect& GetLastRect()
+	{
+	   wasPressed = false;
+	   return lastRect;
+	}
+};
 
 int main(int argc, char* argv[])
 {
-        // получаем любую подключённую камеру
-        CvCapture* capture = cvCreateCameraCapture(CV_CAP_ANY); //cvCaptureFromCAM( 0 );
-        assert( capture );
+   // получаем любую подключённую камеру
+   cv::VideoCapture cap(0);
+   assert( cap.isOpened() );
 
-        //cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, 640);//1280);
-        //cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, 480);//960);
+   //cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, 640);//1280);
+   //cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, 480);//960);
 
-        // узнаем ширину и высоту кадра
-        double width = cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH);
-        double height = cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT);
-        printf("[i] %.0f x %.0f\n", width, height );
+   // узнаем ширину и высоту кадра
+   std::cout << "[i] " << cap.get(CV_CAP_PROP_FRAME_WIDTH) << " x " << cap.get(CV_CAP_PROP_FRAME_HEIGHT) << std::endl;
 
-        IplImage* frame=0;
+   cv::namedWindow( winCaption );
+   cv::setMouseCallback( winCaption, MouseHandler::MouseWinCallback );
 
-        cvNamedWindow("capture", CV_WINDOW_AUTOSIZE);
+   std::cout << "[i] press Enter for capture image and Esc for quit!" << std::endl;
+   
+   cv::Mat imageTemplate;
+   int userInputWidth, userInputHeight;
+     
+   int counter=0;
+   while(true)
+   {
+      // получаем кадр
+      cv::Mat frame;
+      cap >> frame;
+      
+      if( MouseHandler::WasPressed() )
+      {
+         const cv::Rect& last = MouseHandler::GetLastRect();
+         userInputWidth = last.width;
+         userInputHeight = last.height;
 
-        printf("[i] press Enter for capture image and Esc for quit!\n\n");
+         imageTemplate = cv::Mat( frame, last ).clone();
+         //cv::imwrite( "imageTemplate.jpg", imageTemplate );
+      }
+      
+      if( MouseHandler::EverPressed() )
+      {
+         cv::Mat result;
+         cv::matchTemplate( frame, imageTemplate, result, CV_TM_CCORR_NORMED );
+         
+         double minVal, maxVal;
+         cv::Point minLoc, maxLoc;
+         minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc );
+         
+         cv::Rect foundRect( maxLoc.x, maxLoc.y, userInputWidth, userInputHeight );
+         
+         cv::rectangle( frame, foundRect, CV_RGB(0, 0, 255) );
+         
+         imageTemplate = cv::Mat( frame, foundRect ).clone();
+      }
+      
+      // показываем
+      cv::imshow( winCaption, frame );
 
-        int counter=0;
-        char filename[512];
-
-        while(true){
-                // получаем кадр
-                frame = cvQueryFrame( capture );
-
-                // показываем
-                cvShowImage("capture", frame);
-
-                char c = cvWaitKey(33);
-                if (c == 27) { // нажата ESC
-                        break;
-                }
-                else if(c == 13) { // Enter
-                        // сохраняем кадр в файл
-                        sprintf(filename, "Image%d.jpg", counter);
-                        printf("[i] capture... %s\n", filename);
-                        cvSaveImage(filename, frame);
-                        counter++;
-                }
-        }
-        // освобождаем ресурсы
-        cvReleaseCapture( &capture );
-        cvDestroyWindow("capture");
-        return 0;
+      if( cv::waitKey(1) == 27 ) break;
+      counter++;
+   }
+   return 0;
 }

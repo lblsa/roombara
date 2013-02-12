@@ -60,9 +60,6 @@ int main(int argc, char* argv[])
    cv::VideoCapture cap(0);
    assert( cap.isOpened() );
 
-   //cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, 640);//1280);
-   //cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, 480);//960);
-
    // узнаем ширину и высоту кадра
    std::cout << "[i] " << cap.get(CV_CAP_PROP_FRAME_WIDTH) << " x " << cap.get(CV_CAP_PROP_FRAME_HEIGHT) << std::endl;
 

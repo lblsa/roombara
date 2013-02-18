@@ -30,9 +30,3 @@ target_link_libraries( 33-cvMatchShapes ${OpenCV_LIBS} )
 
 add_executable(lkdemo lkdemo.cpp)
 target_link_libraries( lkdemo ${OpenCV_LIBS} )
-
-add_executable(111 111.cpp)
-target_link_libraries( 111 ${OpenCV_LIBS} )
-
-add_executable(112 112.cpp)
-target_link_libraries( 112 ${OpenCV_LIBS} )

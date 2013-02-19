@@ -10,8 +10,8 @@ namespace Roombara
 class SurfMatcher: public IMatcher
 {
 public:
-	SurfMatcher():m_hessianValue(400){};
-	
+	SurfMatcher():m_hessianValue(100){};
+
     virtual void DoMatch(const cv::Mat& object, cv::Mat& scene);
 
     void SetHessianValue(int value) { m_hessianValue = value; }

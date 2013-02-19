@@ -1,4 +1,4 @@
-add_library(roombara_matcher STATIC matcher.cpp surf_matcher.cpp template_matcher.cpp)
+add_library(roombara_matcher STATIC matcher_factory.cpp surf_matcher.cpp template_matcher.cpp)
 target_link_libraries( roombara_matcher ${OpenCV_LIBS} )
 
 add_executable(test_motion_tracking main.cpp)

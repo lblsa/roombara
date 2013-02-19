@@ -9,7 +9,6 @@ void TemplateMatcher::DoMatch(const cv::Mat& object, cv::Mat& scene)
     //cv::matchTemplate( scene, object, result, CV_TM_CCORR_NORMED );
     cv::matchTemplate( scene, object, result, CV_TM_CCOEFF_NORMED );
 
-
     double minVal, maxVal;
     cv::Point minLoc, maxLoc;
     minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc );

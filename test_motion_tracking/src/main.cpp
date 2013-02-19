@@ -9,7 +9,7 @@
 #include <iostream>
 #include <sstream>
 #include <error.hpp>
-#include <matcher.hpp>
+#include <matcher_factory.hpp>
 
 const std::string winCaption = "Camera input:";
 
@@ -85,8 +85,9 @@ int main(int argc, char* argv[])
         RB::MatcherFactoryPtr factory = RB::create_matcher_factory();
 
         // Create matcher
-        //RB::MatcherPtr matcher = factory->CreateMatcher(RB::MatcherEngine::SURF);
-        RB::MatcherPtr matcher = factory->CreateMatcher(RB::MatcherEngine::TEMPLATE);
+        RB::SurfMatcherPtr matcher = factory->CreateSurfMatcher();
+        matcher->SetHessianValue(500);
+        //RB::TemplateMatcherPtr matcher = factory->CreateTemplateMatcher();
 
         while(true)
         {
@@ -119,6 +120,7 @@ int main(int argc, char* argv[])
         }
     }
     catch(const RB::Error&) { }
+    catch(const std::bad_alloc&) { }
     catch(...) { }
 
     return 0;

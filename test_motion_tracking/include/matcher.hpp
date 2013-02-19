@@ -6,15 +6,6 @@
 namespace Roombara
 {
 
-struct MatcherEngine
-{
-    enum Type 
-    {
-        SURF = 0,
-        TEMPLATE
-    };
-};
-
 class IMatcher
 {
 public:
@@ -23,16 +14,6 @@ public:
 };
 
 typedef cv::Ptr<IMatcher> MatcherPtr;
-
-class MatcherFactory
-{
-public:
-    MatcherPtr CreateMatcher(const MatcherEngine::Type type = MatcherEngine::SURF);
-};
-
-typedef cv::Ptr<MatcherFactory> MatcherFactoryPtr;
-
-MatcherFactoryPtr create_matcher_factory();
 
 }
 

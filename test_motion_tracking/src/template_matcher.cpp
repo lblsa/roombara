@@ -3,7 +3,7 @@
 namespace Roombara
 {
 
-void TemplateMatcher::DoMatch(const cv::Mat& object, cv::Mat& scene)
+cv::Rect TemplateMatcher::DoMatch(const cv::Mat& object, cv::Mat& scene)
 {
     cv::Mat result;
     //cv::matchTemplate( scene, object, result, CV_TM_CCORR_NORMED );
@@ -17,6 +17,8 @@ void TemplateMatcher::DoMatch(const cv::Mat& object, cv::Mat& scene)
 
     cv::rectangle( scene, foundRect, CV_RGB(0, 0, 255) );
     //imageTemplate = cv::Mat( scene, foundRect ).clone();
+    
+    return foundRect;
 }
 
 }

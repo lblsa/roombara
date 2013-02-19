@@ -74,8 +74,7 @@ int main(int argc, char* argv[])
     std::cout << "[i] press Enter for capture image and Esc for quit!" << std::endl;
 
     cv::Mat imageTemplate;
-    int userInputWidth, userInputHeight;
-
+    cv::Rect lastFoundRect;
     int counter=0;
 
     namespace RB = Roombara;
@@ -99,23 +98,50 @@ int main(int argc, char* argv[])
 
             if( MouseHandler::WasPressed() )
             {
-                const cv::Rect& last = MouseHandler::GetLastRect();
-                userInputWidth = last.width;
-                userInputHeight = last.height;
-
-                imageTemplate = cv::Mat( frame, last ).clone();
-                //cv::imwrite( "imageTemplate.jpg", imageTemplate );
+               lastFoundRect = MouseHandler::GetLastRect();
+                
+               imageTemplate = cv::Mat( frame, lastFoundRect ).clone();
+               //cv::imwrite( "imageTemplate.jpg", imageTemplate );
             }
 
             if( MouseHandler::EverPressed() )
             {
-                matcher->DoMatch(imageTemplate, frame);
+            	int frameSizeX = frame.cols;
+            	int frameSizeY = frame.rows;
+            	
+            	int areaSizeX = lastFoundRect.width;
+            	int areaSizeY = lastFoundRect.height;
+            	
+            	int areaX = lastFoundRect.x;
+            	int areaY = lastFoundRect.y;
+            	
+               cv::Point upperLeftSearch( std::max( int(areaX - areaSizeX*0.5), 0 ), 
+               									std::max( int(areaY - areaSizeY*0.5), 0 ) );
+               
+               cv::Point lowerRightSearch( std::min( int( areaX + areaSizeX*1.5 ), frameSizeX ),
+               									 std::min( int( areaY + areaSizeY*1.5 ), frameSizeY ) );
+                        
+               cv::Rect searchRect( upperLeftSearch, lowerRightSearch );
+               cv::Mat searchFrame( frame, searchRect );
+               
+               cv::imshow("search area", searchFrame);
+               
+               cv::Rect found = matcher->DoMatch( imageTemplate, searchFrame ); 
+               
+               lastFoundRect.x = found.x + upperLeftSearch.x;
+               lastFoundRect.y = found.y + upperLeftSearch.y;
+               lastFoundRect.height = found.height;
+               lastFoundRect.width = found.width;
+               
+               // if found - reset template to new match (incremental changes will be absorbed)
+               if( lastFoundRect.height )
+               	imageTemplate = cv::Mat( frame, lastFoundRect ).clone();
             }
 
             // показываем
             cv::imshow( winCaption, frame );
 
-            if( cv::waitKey(1) == 27 ) break;
+            if( cv::waitKey(330) == 27 ) break;
             counter++;
         }
     }

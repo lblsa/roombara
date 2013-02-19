@@ -10,7 +10,7 @@ namespace Roombara
 class TemplateMatcher: public IMatcher
 {
 public:
-    virtual void DoMatch(const cv::Mat& object, cv::Mat& scene);
+    virtual cv::Rect DoMatch(const cv::Mat& object, cv::Mat& scene);
 
     virtual ~TemplateMatcher(){};
 };

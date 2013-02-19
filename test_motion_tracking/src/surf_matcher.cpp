@@ -1,12 +1,19 @@
 #include <surf_matcher.hpp>
 #include <opencv2/features2d/features2d.hpp>
+
+#ifdef RMB_NON_FREE
+#include <opencv2/nonfree/features2d.hpp>
+#endif
+
 #include <vector>
 
 namespace Roombara
 {
 
-void SurfMatcher::DoMatch(const cv::Mat& object, cv::Mat& scene)
+cv::Rect SurfMatcher::DoMatch(const cv::Mat& object, cv::Mat& scene)
 {
+	cv::Rect foundRect;
+	
     float nndrRatio = 0.7f;
     //vector of keypoints   
     std::vector< cv::KeyPoint > keypointsO;
@@ -18,9 +25,9 @@ void SurfMatcher::DoMatch(const cv::Mat& object, cv::Mat& scene)
     cv::SurfFeatureDetector surf(m_hessianValue); 
     //  FastFeatureDetector surf(m_hessianValue);
     surf.detect(scene,keypointsS);
-    if(keypointsS.size() < 3) return; //Not enough keypoints, object not found
+    if(keypointsS.size() < 3) return foundRect; //Not enough keypoints, object not found
     surf.detect(object,keypointsO);
-    if(keypointsO.size() < 4) return; //Not enough keypoints, object not found
+    if(keypointsO.size() < 4) return foundRect; //Not enough keypoints, object not found
 
     //-- Step 2: Calculate descriptors (feature vectors)
     cv::SurfDescriptorExtractor extractor;
@@ -77,7 +84,16 @@ void SurfMatcher::DoMatch(const cv::Mat& object, cv::Mat& scene)
         cv::line( scene, scene_corners[1], scene_corners[2], CV_RGB(0, 0, 255), 2 );
         cv::line( scene, scene_corners[2], scene_corners[3], CV_RGB(0, 0, 255), 2 );
         cv::line( scene, scene_corners[3], scene_corners[0], CV_RGB(0, 0, 255), 2 ); 
+
+        int upperY = std::min( scene_corners[0].y, scene_corners[1].y );
+        int leftX = std::min( scene_corners[0].x, scene_corners[3].x );
+        int lowerY = std::max( scene_corners[2].y, scene_corners[3].y );
+        int rightX = std::max( scene_corners[1].x, scene_corners[2].x );\
+        
+        foundRect = cv::Rect( cv::Point( leftX, upperY), cv::Point( rightX, lowerY ) );
     }
+    
+    return foundRect;
 }
 
 }

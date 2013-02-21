@@ -19,6 +19,11 @@
   <target name="compile" depends="init"
         description="compile the source " >
     <exec executable="make"/>
+    <exec executable="tar">
+        <arg value="zcf"/>
+        <arg value="package.tar.gz"/>
+        <arg value="src"/>
+    </exec>
   </target>
 
   <target name="clean"

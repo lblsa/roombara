@@ -79,16 +79,18 @@ cv::Rect SurfMatcher::DoMatch(const cv::Mat& object, cv::Mat& scene)
 
         cv::perspectiveTransform( obj_corners, scene_corners, H);
 
-        //-- Draw lines between the corners (the mapped object in the scene - image_2 ) 
+        //-- Draw lines between the corners (the mapped object in the scene - image_2 )
+        /*
         cv::line( scene, scene_corners[0], scene_corners[1], CV_RGB(0, 0, 255), 2 ); //TOP line
         cv::line( scene, scene_corners[1], scene_corners[2], CV_RGB(0, 0, 255), 2 );
         cv::line( scene, scene_corners[2], scene_corners[3], CV_RGB(0, 0, 255), 2 );
-        cv::line( scene, scene_corners[3], scene_corners[0], CV_RGB(0, 0, 255), 2 ); 
+        cv::line( scene, scene_corners[3], scene_corners[0], CV_RGB(0, 0, 255), 2 );
+        */ 
 
         int upperY = std::min( scene_corners[0].y, scene_corners[1].y );
         int leftX = std::min( scene_corners[0].x, scene_corners[3].x );
         int lowerY = std::max( scene_corners[2].y, scene_corners[3].y );
-        int rightX = std::max( scene_corners[1].x, scene_corners[2].x );\
+        int rightX = std::max( scene_corners[1].x, scene_corners[2].x );
         
         foundRect = cv::Rect( cv::Point( leftX, upperY), cv::Point( rightX, lowerY ) );
     }

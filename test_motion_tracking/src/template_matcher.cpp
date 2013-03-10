@@ -15,7 +15,7 @@ cv::Rect TemplateMatcher::DoMatch(const cv::Mat& object, cv::Mat& scene)
 
     cv::Rect foundRect( maxLoc.x, maxLoc.y, object.cols, object.rows );
 
-    cv::rectangle( scene, foundRect, CV_RGB(0, 0, 255) );
+    //cv::rectangle( scene, foundRect, CV_RGB(0, 0, 255) );
     //imageTemplate = cv::Mat( scene, foundRect ).clone();
     
     return foundRect;

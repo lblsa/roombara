@@ -84,18 +84,25 @@ int main(int argc, char* argv[])
         RB::MatcherFactoryPtr factory = RB::create_matcher_factory();
 
         // Create matcher
-        RB::SurfMatcherPtr matcher = factory->CreateSurfMatcher();
-        matcher->SetHessianValue(500);
-        //RB::TemplateMatcherPtr matcher = factory->CreateTemplateMatcher();
+        //RB::SurfMatcherPtr matcher = factory->CreateSurfMatcher();
+        //matcher->SetHessianValue(500);
+        RB::TemplateMatcherPtr matcher = factory->CreateTemplateMatcher();
 
+        // Camera image fetching cycle
         while(true)
         {
-            // получаем кадр
-            cv::Mat frame;
+            // fetch image frame from camera
+            cv::Mat frame, frameToShow;
+            
             cap >> frame;
-            cvtColor(frame,frame,CV_RGB2GRAY);
+            frameToShow = frame.clone();
+            
+            //cv::cvtColor( frame, frame, CV_RGB2GRAY );
+            //cv::equalizeHist( frame, frame );
+            
             //cv::GaussianBlur(frame, frame, cv::Size(5,5),1.5);
 
+            // check if user has selected the object to follow
             if( MouseHandler::WasPressed() )
             {
                lastFoundRect = MouseHandler::GetLastRect();
@@ -104,8 +111,10 @@ int main(int argc, char* argv[])
                //cv::imwrite( "imageTemplate.jpg", imageTemplate );
             }
 
+            // DoMatch only in the case of followed area is selected
             if( MouseHandler::EverPressed() )
             {
+            	// 1. Calculate the search frame - +-50% of the found area
             	int frameSizeX = frame.cols;
             	int frameSizeY = frame.rows;
             	
@@ -115,17 +124,20 @@ int main(int argc, char* argv[])
             	int areaX = lastFoundRect.x;
             	int areaY = lastFoundRect.y;
             	
-               cv::Point upperLeftSearch( std::max( int(areaX - areaSizeX*0.5), 0 ), 
-               									std::max( int(areaY - areaSizeY*0.5), 0 ) );
+            	double searchCoeff = 0.5;
+            	
+               cv::Point upperLeftSearch( std::max( int(areaX - areaSizeX*searchCoeff), 0 ), 
+               									std::max( int(areaY - areaSizeY*searchCoeff), 0 ) );
                
-               cv::Point lowerRightSearch( std::min( int( areaX + areaSizeX*1.5 ), frameSizeX ),
-               									 std::min( int( areaY + areaSizeY*1.5 ), frameSizeY ) );
+               cv::Point lowerRightSearch( std::min( int( areaX + areaSizeX*(1+searchCoeff) ), frameSizeX ),
+               									 std::min( int( areaY + areaSizeY*(1+searchCoeff) ), frameSizeY ) );
                         
                cv::Rect searchRect( upperLeftSearch, lowerRightSearch );
                cv::Mat searchFrame( frame, searchRect );
                
                cv::imshow("search area", searchFrame);
                
+               // 2. DoMatch - searching for matching area
                cv::Rect found = matcher->DoMatch( imageTemplate, searchFrame ); 
                
                lastFoundRect.x = found.x + upperLeftSearch.x;
@@ -133,15 +145,19 @@ int main(int argc, char* argv[])
                lastFoundRect.height = found.height;
                lastFoundRect.width = found.width;
                
-               // if found - reset template to new match (incremental changes will be absorbed)
+               // 3. If found - reset template to new match 
+               // Incremental changes in the scene will be absorbed due to this approach
                if( lastFoundRect.height )
+               {
                	imageTemplate = cv::Mat( frame, lastFoundRect ).clone();
+               	cv::rectangle( frameToShow, lastFoundRect, CV_RGB(0, 0, 255) );
+               }
             }
 
             // показываем
-            cv::imshow( winCaption, frame );
+            cv::imshow( winCaption, frameToShow );
 
-            if( cv::waitKey(330) == 27 ) break;
+            if( cv::waitKey(3) == 27 ) break;
             counter++;
         }
     }
